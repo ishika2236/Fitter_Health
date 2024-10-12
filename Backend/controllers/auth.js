@@ -13,7 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const registerUser = async (req, res) => {
     console.log('Session object:', req.session);
     try {
-        const { username, email, password, name, age, gender, height, weight, fitnessGoals, workoutLevel } = req.body;
+        const { username, email, password,  age, gender, height, weight, fitnessGoals, workoutLevel } = req.body;
 
         // Check if user already exists
         let user = await UserData.findOne({ email });

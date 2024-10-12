@@ -3,16 +3,30 @@ const http = require('http');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const mongoose = require('mongoose');
+const cors = require('cors');
 require('dotenv').config();
 const { databaseConnection } = require('./utils/databaseConnection');
 
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
+
+const corsOptions = {
+    origin: 'http://localhost:5173', // Allow requests from this origin
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed methods
+    credentials: true, // Allow credentials (e.g., cookies, authorization headers)
+};
+
+// Use CORS middleware with options
+app.use(cors(corsOptions));
 const AuthRoutes = require('./routes/auth');
 
+
+
 // Middleware to parse JSON requests
+app.use('/auth', AuthRoutes);
 app.use(express.json());
+
 
 // Session middleware setup
 app.use(session({
@@ -28,7 +42,7 @@ app.use(session({
 }));
 
 // Auth routes
-app.use('/auth', AuthRoutes);
+
 
 // Start server and connect to database
 server.listen(PORT, async () => {
