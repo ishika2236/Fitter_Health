@@ -6,10 +6,12 @@ import Login from './Components/Login'
 import OTPVerification from './Components/OTPVerification'
 import AuthLayout from './Components/AuthLayout'
 import Dashboard from './Components/Dashboard'
+import Navbar from './Components/Navbar'
 function App() {
 
   return (
     <>
+    <Navbar/>
     <Routes>
       <Route element={<AuthLayout/>} path='/signin'></Route>
       <Route element={<AuthLayout/>} path='/login'></Route>

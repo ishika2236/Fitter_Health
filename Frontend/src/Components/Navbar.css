@@ -1,0 +1,68 @@
+.navbar {
+    background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    display: flex;
+    justify-content: space-around;
+    padding: 1rem;
+    align-items: center;
+    font-size: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+  }
+  
+  .navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 975px;
+    padding: 0 20px;
+  }
+  
+  .navbar-logo {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-decoration: none;
+    font-family: 'Lobster', cursive; /* You may need to import this font */
+  }
+  
+  .nav-icons {
+    display: flex;
+    align-items: center;
+  }
+  
+  .nav-icon {
+    color: #ffffff;
+    margin-left: 22px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .nav-icon:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+  
+  .nav-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  @media screen and (max-width: 640px) {
+    .navbar-logo {
+      display: none;
+    }
+  
+    .navbar-container {
+      justify-content: space-around;
+    }
+  
+    .nav-icon {
+      margin-left: 0;
+    }
+  }
