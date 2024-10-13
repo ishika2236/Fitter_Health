@@ -9,6 +9,8 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
+import signinRequest from '../services/signup';
+import './SignIn.css'
 const BpIcon = styled('span')(({ theme }) => ({
     borderRadius: '50%',
     width: 16,
@@ -68,6 +70,7 @@ const SignIn = () => {
     const navigate = useNavigate();
     const [page, setPage] = useState(0);
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [passwordMatchError, setPasswordMatchError] = useState(false);
     const [formData, setFormData] = useState({
         username: '',
@@ -101,13 +104,15 @@ const SignIn = () => {
     };
 
     const handleSubmit = async () => {
+        setIsSubmitting(true);
         try {
-            localStorage.setItem('email',formData.email);
-            const response = await axios.post('http://localhost:8080/auth/signin', formData);
-            console.log(response.data); 
+            signinRequest(formData);
             navigate('/verify-otp')
         } catch (error) {
             console.error(error);  
+        }
+        finally {
+            setIsSubmitting(false);
         }
     };
   return (
@@ -197,6 +202,7 @@ const SignIn = () => {
                             aria-labelledby="demo-customized-radios"
                             name="customized-radios"
                             onChange={handleChange}
+                            className='gender-toggle-btns'
                         >
                             <FormControlLabel value="Female" control={<BpRadio />} label="Female" />
                             <FormControlLabel value="Male" control={<BpRadio />} label="Male" />
@@ -316,8 +322,9 @@ const SignIn = () => {
                         fullWidth
                         sx={{ mt: 2 }}
                         onClick={handleSubmit}
+                        disabled={isSubmitting} 
                         >
-                        Submit
+                        {isSubmitting ? 'Submitting...' : 'Submit'}
                         </Button>
 
                 </Box>

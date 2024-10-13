@@ -1,7 +1,7 @@
 import { TextField, Button, Box, Typography } from '@mui/material';
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import otpVerificationRequest from '../services/otpVerification';
 
 
 const OTPVerification = () => {
@@ -12,22 +12,17 @@ const OTPVerification = () => {
     const handleOtpSubmit = async (e) => {
       e.preventDefault();
       console.log('Verifying OTP:', otp);
-
       try {
-          const email = localStorage.getItem('email');
-          const response = await axios.post('http://localhost:8080/auth/otpVerification', {email, otp });
-          console.log('Response:', response.data);
-          setSuccess('OTP verified successfully!'); 
-          setError(null); 
-          localStorage.setItem('token', response.data);
+          const response = await otpVerificationRequest(otp);
+          setSuccess('OTP verified successfully!');
+          setError(null);
           navigate('/');
-        
       } catch (err) {
           console.error('Error verifying OTP:', err);
-          setError('Failed to verify OTP. Please try again.');
-          setSuccess(null); 
+          setError(err.response?.data?.message || 'Failed to verify OTP. Please try again.');
+          setSuccess(null);
       }
-  };
+    };
 
 
   return (

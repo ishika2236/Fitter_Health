@@ -1,21 +1,17 @@
 const UserData = require('../models/user');
 const OTP = require('../models/otp');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { sendVerificationMail, sendLoginNotification } = require('../utils/nodemailer');
 require('dotenv').config();
-const session = require('express-session');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const registerUser = async (req, res) => {
-    console.log('Session object:', req.session);
     try {
-        const { username, email, password,  age, gender, height, weight, fitnessGoals, workoutLevel } = req.body;
+        const { username, email, password, age, gender, height, weight, fitnessGoals, workoutLevel } = req.body;
 
-        // Check if user already exists
+        // Check if the user already exists
         let user = await UserData.findOne({ email });
         if (user) {
             return res.status(400).json({ message: 'User already exists! Kindly login!' });
@@ -29,12 +25,10 @@ const registerUser = async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const otpDoc = new OTP({ email, otp });
 
-        // Save OTP to the database
-        console.log('OTP is: ', otp);
         await otpDoc.save();
 
-        // Store temporary user data in session
-        req.session.userData = {
+        // Store user data in session
+        req.session.user = {
             username,
             email,
             password: hashedPassword,
@@ -47,73 +41,106 @@ const registerUser = async (req, res) => {
             isVerified: false
         };
 
-        // Send verification email
-        await sendVerificationMail(email, otp);
+        console.log('Session after setting userData:', req.session);
 
-        res.status(201).json({ message: 'User created. Please verify your email with the OTP sent.' });
+        // Ensure the session is saved before sending the response
+        req.session.save(async (err) => {
+            if (err) {
+                console.error('Error saving session:', err);
+                return res.status(500).json({ message: 'Error saving session', error: err.message });
+            }
+
+            await sendVerificationMail(email, otp);
+
+            res.status(201).json({ message: 'User created. Please verify your email with the OTP sent.' });
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error in registerUser:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
 const verifyOtp = async (req, res) => {
-    console.log(req.session);
+    console.log('Session at the start of verifyOtp:', req.session);
 
     try {
-        const { email, otp } = req.body;
+        const { otp } = req.body;
 
-        const otpDoc = await OTP.findOne({ email, otp });
-
-        if (!otpDoc) {
-            return res.status(404).json({ message: 'Invalid OTP' });
+        // Check if session userData is set
+        if (!req.session.user) {
+            console.log('Session userData is undefined');
+            return res.status(400).json({ message: 'Session expired or invalid. Please register again.' });
         }
 
-        const pendingUser = req.session.userData;
-        if (!pendingUser || pendingUser.email !== email) {
-            return res.status(400).json({ message: 'Invalid registration session' });
+        console.log('Session userData:', req.session.user);
+
+        const {
+            username,
+            email,
+            password,
+            age,
+            gender,
+            height,
+            weight,
+            fitnessGoals,
+            workoutLevel
+        } = req.session.user;
+
+        // Verify that the email in the request matches the one in the session
+        if (email !== req.session.user.email) {
+            return res.status(400).json({ message: 'Email mismatch. Please try again.' });
         }
 
-        // Create new user with the data in session
+        const otpDoc = await OTP.findOne({ email }).sort({ createdAt: -1 });
+
+        if (!otpDoc || otpDoc.otp !== otp) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+        // Create a new user
         const user = new UserData({
-            ...pendingUser,
-            isVerified: true
+            username,
+            email,
+            password,
+            age,
+            gender,
+            height,
+            weight,
+            fitnessGoals,
+            workoutLevel,
+            isVerified: true // Set isVerified to true upon successful registration
         });
 
         await user.save();
-        await OTP.deleteOne({ email, otp });
+        await OTP.deleteOne({ _id: otpDoc._id });
 
-        // Clean up session
-        delete req.session.userData;
-
-        // Generate JWT token
-        jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-        });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
         user.lastLogin = Date.now();
         await user.save();
+
+        // Clear the session data after successful verification
+        req.session.userData = null;
+        req.session.save((err) => {
+            if (err) {
+                console.error('Error clearing session:', err);
+            }
+            res.json({ token });
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error in verifyOtp:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
 const loginUser = async (req, res) => {
-    
     try {
-        console.log(req.body);
-        const email = req.body.Email.toLowerCase();
-        const password = req.body.password;
+        const { email, password } = req.body;
 
-        const user = await UserData.findOne({ email });
+        const user = await UserData.findOne({ email: email.toLowerCase() });
         if (!user) {
-            console.log('user not found during login');
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-        console.log('user found during login');
-        
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -124,22 +151,17 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Please verify your email first' });
         }
 
-        // Generate JWT token
-        jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-        });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
-        // Update last login time
         user.lastLogin = Date.now();
         await user.save();
 
-        // Send login notification email
         await sendLoginNotification(email, 'Your login was successful.');
 
+        res.json({ token });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error in loginUser:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 

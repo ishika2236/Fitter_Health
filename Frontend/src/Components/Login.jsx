@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { TextField, Button, Box, Typography } from '@mui/material';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css'
+import loginRequest from '../services/login';
 
 
 
@@ -16,13 +16,7 @@ const Login = () => {
 
     try {
       // Send login request to backend
-      const response = await axios.post('http://localhost:8080/auth/login', {
-        Email,
-        password,
-      });
-      console.log('Login response:', response.data);
-      // setIsOtpVisible(true);
-      localStorage.setItem('token', response.data);
+      loginRequest(Email, password);
       navigate('/');
     } catch (err) {
       console.error('Login error:', err);

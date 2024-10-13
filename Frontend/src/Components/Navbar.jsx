@@ -13,7 +13,7 @@ const Navbar = () => {
         </Link>
         <div className="nav-icons">
           <Link to="/" className="nav-icon">
-            <Dashboard />
+            <Home />
           </Link>
           <Link to="/search" className="nav-icon">
             <Search />
