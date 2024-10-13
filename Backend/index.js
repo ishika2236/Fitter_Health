@@ -10,25 +10,6 @@ const { databaseConnection } = require('./utils/databaseConnection');
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
-
-const corsOptions = {
-    origin: 'http://localhost:5173', // Allow requests from this origin
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed methods
-    credentials: true, // Allow credentials (e.g., cookies, authorization headers)
-};
-
-// Use CORS middleware with options
-app.use(cors(corsOptions));
-const AuthRoutes = require('./routes/auth');
-
-
-
-// Middleware to parse JSON requests
-app.use('/auth', AuthRoutes);
-app.use(express.json());
-
-
-// Session middleware setup
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -40,6 +21,28 @@ app.use(session({
         maxAge: 1000 * 60 * 10 // Session valid for 10 minutes
     }
 }));
+
+const corsOptions = {
+    origin: 'http://localhost:5173', // Allow requests from this origin
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed methods
+    credentials: true, // Allow credentials (e.g., cookies, authorization headers)
+};
+
+// Use CORS middleware with options
+app.use(cors(corsOptions));
+const AuthRoutes = require('./routes/auth');
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // To parse URL-encoded data
+
+
+
+// Middleware to parse JSON requests
+app.use('/auth', AuthRoutes);
+
+
+
+// Session middleware setup
+
 
 // Auth routes
 

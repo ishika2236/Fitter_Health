@@ -14,7 +14,8 @@ const OTPVerification = () => {
       console.log('Verifying OTP:', otp);
 
       try {
-          const response = await axios.post('http://localhost:8080/auth/verify-otp', { otp });
+          const email = localStorage.getItem('email');
+          const response = await axios.post('http://localhost:8080/auth/otpVerification', {email, otp });
           console.log('Response:', response.data);
           setSuccess('OTP verified successfully!'); 
           setError(null); 

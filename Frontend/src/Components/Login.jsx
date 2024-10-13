@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 const Login = () => {
-    const [username, setUsername] = useState('');
+    const [Email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
@@ -16,11 +16,11 @@ const Login = () => {
     try {
       // Send login request to backend
       const response = await axios.post('http://localhost:8080/auth/login', {
-        username,
+        Email,
         password,
       });
       console.log('Login response:', response.data);
-      setIsOtpVisible(true);
+      // setIsOtpVisible(true);
       localStorage.setItem('token', response.data);
       navigate('/');
     } catch (err) {
@@ -35,12 +35,12 @@ const Login = () => {
       </Typography>
       <form onSubmit={handleLoginSubmit}>
         <TextField
-          label="Username"
+          label="Email"
           variant="outlined"
           fullWidth
           margin="normal"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          value={Email}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <TextField
           label="Password"

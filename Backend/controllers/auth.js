@@ -38,7 +38,6 @@ const registerUser = async (req, res) => {
             username,
             email,
             password: hashedPassword,
-            name,
             age,
             gender,
             height,
@@ -102,13 +101,19 @@ const verifyOtp = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
+    
     try {
-        const { email, password } = req.body;
+        console.log(req.body);
+        const email = req.body.Email.toLowerCase();
+        const password = req.body.password;
 
         const user = await UserData.findOne({ email });
         if (!user) {
+            console.log('user not found during login');
             return res.status(400).json({ message: 'Invalid credentials' });
         }
+        console.log('user found during login');
+        
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {

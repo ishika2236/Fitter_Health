@@ -73,7 +73,6 @@ const SignIn = () => {
         username: '',
         email: '',
         password: '',
-        name: '',
         age: '',
         gender: '',
         height: '',
@@ -103,6 +102,7 @@ const SignIn = () => {
 
     const handleSubmit = async () => {
         try {
+            localStorage.setItem('email',formData.email);
             const response = await axios.post('http://localhost:8080/auth/signin', formData);
             console.log(response.data); 
             navigate('/verify-otp')
@@ -145,6 +145,7 @@ const SignIn = () => {
                         onChange={handleChange}
                         fullWidth
                         margin="normal"
+                        type='password'
                     />
 
                     <TextField
@@ -155,6 +156,7 @@ const SignIn = () => {
                         onChange={handlePassword}
                         fullWidth
                         margin="normal"
+                        type='password'
                     />
                     {passwordMatchError && <Typography variant='h6' color='red' gutterBottom>
                         Passwords dont match
@@ -191,14 +193,14 @@ const SignIn = () => {
                     <FormControl>
                         <FormLabel id="demo-customized-radios">Gender</FormLabel>
                         <RadioGroup
-                            defaultValue="female"
+                            defaultValue="Female"
                             aria-labelledby="demo-customized-radios"
                             name="customized-radios"
                             onChange={handleChange}
                         >
-                            <FormControlLabel value="female" control={<BpRadio />} label="Female" />
-                            <FormControlLabel value="male" control={<BpRadio />} label="Male" />
-                            <FormControlLabel disabled value="other" control={<BpRadio />} label="Other" />
+                            <FormControlLabel value="Female" control={<BpRadio />} label="Female" />
+                            <FormControlLabel value="Male" control={<BpRadio />} label="Male" />
+                            <FormControlLabel disable value="other" control={<BpRadio />} label="Other" />
                         </RadioGroup>
                         </FormControl>
                         <TextField
